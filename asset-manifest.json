@@ -1,18 +1,20 @@
 {
   "files": {
-    "main.js": "/ttsmm-web/static/js/main.378bc7d2.js",
+    "main.css": "/ttsmm-web/static/css/main.054d6857.css",
+    "main.js": "/ttsmm-web/static/js/main.0d179da4.js",
     "static/js/787.f746c1c5.chunk.js": "/ttsmm-web/static/js/787.f746c1c5.chunk.js",
     "static/media/steam.png": "/ttsmm-web/static/media/steam.149f1196d617369e51a7.png",
     "static/media/ttmm.png": "/ttsmm-web/static/media/ttmm.824fc2c9f2d4d0d45afa.png",
-    "static/media/App.global.less": "/ttsmm-web/static/media/App.global.fb16f38879db73475ea5.less",
     "static/media/StandardBlocks.svg": "/ttsmm-web/static/media/StandardBlocks.7f23238e37e73a82534b1451fb9001fe.svg",
     "static/media/faction-flag.svg": "/ttsmm-web/static/media/faction-flag.ac0c3014bd525c2ba8dfc6b84d7c5789.svg",
     "static/media/paintbrush.svg": "/ttsmm-web/static/media/paintbrush.68691714e3c4ef05c69018507d589dbb.svg",
     "index.html": "/ttsmm-web/index.html",
-    "main.378bc7d2.js.map": "/ttsmm-web/static/js/main.378bc7d2.js.map",
+    "main.054d6857.css.map": "/ttsmm-web/static/css/main.054d6857.css.map",
+    "main.0d179da4.js.map": "/ttsmm-web/static/js/main.0d179da4.js.map",
     "787.f746c1c5.chunk.js.map": "/ttsmm-web/static/js/787.f746c1c5.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/main.378bc7d2.js"
+    "static/css/main.054d6857.css",
+    "static/js/main.0d179da4.js"
   ]
 }
