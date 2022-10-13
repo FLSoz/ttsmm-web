@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useOutletContext } from 'react-router-dom';
 import { Component } from 'react';
 
 import { DisplayModData } from '../model/CollectionValidation';
@@ -18,11 +17,11 @@ interface TTSMMCollectionState {
 }
 
 export interface TTSMMCollectionProps {
-	collection: TTSMMCollection;
+	ttsmmCollection: TTSMMCollection;
 	updateState: (update: any) => void;
 }
 
-class TTSMMCollectionComponent extends Component<TTSMMCollectionProps, TTSMMCollectionState> {
+export default class TTSMMCollectionView extends Component<TTSMMCollectionProps, TTSMMCollectionState> {
 	constructor(props: TTSMMCollectionProps) {
 		super(props);
 
@@ -36,7 +35,7 @@ class TTSMMCollectionComponent extends Component<TTSMMCollectionProps, TTSMMColl
 
 	// fetch collection/mod details on load
 	componentDidMount(): void {
-		const { updateState, collection } = this.props;
+		const { updateState, ttsmmCollection: collection } = this.props;
 		updateState({ collection });
 		try {
 			const modIDs = collection.mods;
@@ -76,7 +75,3 @@ class TTSMMCollectionComponent extends Component<TTSMMCollectionProps, TTSMMColl
 		return <CollectionTable {...tableProps} />;
 	}
 }
-
-export default () => {
-	return <TTSMMCollectionComponent {...useOutletContext()} />;
-};

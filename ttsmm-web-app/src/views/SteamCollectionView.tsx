@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Component } from 'react';
-import { useMatch, useOutletContext, PathMatch } from 'react-router-dom';
 
 import { ModData } from '../model/Mod';
 import { DisplayModData } from '../model/CollectionValidation';
@@ -18,11 +17,11 @@ interface SteamCollectionState {
 }
 
 export interface SteamCollectionProps {
-	match: PathMatch<string> | null;
+	collectionID: string;
 	updateState: (update: any) => void;
 }
 
-class SteamCollectionComponent extends Component<SteamCollectionProps, SteamCollectionState> {
+export default class SteamCollectionView extends Component<SteamCollectionProps, SteamCollectionState> {
 	constructor(props: SteamCollectionProps) {
 		super(props);
 
@@ -36,8 +35,7 @@ class SteamCollectionComponent extends Component<SteamCollectionProps, SteamColl
 
 	// fetch collection/mod details on load
 	componentDidMount(): void {
-		const { match, updateState } = this.props;
-		const collectionID = match?.params.id;
+		const { collectionID, updateState } = this.props;
 		if (collectionID) {
 			try {
 				updateState({ steamCollection: collectionID });
@@ -89,8 +87,3 @@ class SteamCollectionComponent extends Component<SteamCollectionProps, SteamColl
 		return <CollectionTable {...tableProps} />;
 	}
 }
-
-export default () => {
-	const { updateState } = useOutletContext<{ updateState: (update: any) => void }>();
-	return <SteamCollectionComponent match={useMatch({ path: 'steam/:id' })} updateState={updateState} />;
-};

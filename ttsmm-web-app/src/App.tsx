@@ -1,13 +1,16 @@
-import _React, { Component } from 'react';
+import { Component } from 'react';
 import { Layout } from 'antd';
 import { useCookies } from 'react-cookie';
-import { Outlet } from 'react-router-dom';
 
 import { COOKIE_NAME } from './Constants';
 import { TTSMMCollection } from './model/ModCollection';
-import { TTSMMCollectionProps } from './views/TTSMMCollectionView';
+import { Page } from './model/Menu';
+import TTSMMCollectionView, { TTSMMCollectionProps } from './views/TTSMMCollectionView';
+import SteamCollectionView, { SteamCollectionProps } from './views/SteamCollectionView';
+import SteamCollectionValidationView from './views/SteamCollectionValidationView';
+import MenuBar from './components/MenuBar';
 
-const { Content } = Layout;
+const { Content, Sider } = Layout;
 
 interface CookieSetOptions {
 	path?: string; // cookie path, use / as the path if you want your cookie to be accessible on all pages
@@ -20,8 +23,10 @@ interface CookieSetOptions {
 }
 
 interface AppState {
-	collection?: TTSMMCollection;
-	steamCollection?: string;
+	ttsmmCollection?: TTSMMCollection;
+	steamCollectionID?: string;
+	page: Page;
+	sidebarCollapsed?: boolean;
 }
 
 interface AppProps {
@@ -31,6 +36,7 @@ interface AppProps {
 		{
 			[COOKIE_NAME]?: AppState;
 		},
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(name: 'ttsmm-web-state', value: any, options?: CookieSetOptions | undefined) => void,
 		(name: 'ttsmm-web-state', options?: CookieSetOptions | undefined) => void
 	];
@@ -39,6 +45,7 @@ interface AppProps {
 class App extends Component<AppProps, AppState> {
 	CONFIG_PATH: string | undefined = undefined;
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	setCookie: (name: 'ttsmm-web-state', value: any, options?: CookieSetOptions | undefined) => void;
 	removeCookie: (name: 'ttsmm-web-state', options?: CookieSetOptions | undefined) => void;
 
@@ -51,6 +58,10 @@ class App extends Component<AppProps, AppState> {
 		const savedState = cookies[COOKIE_NAME];
 		if (savedState) {
 			this.state = savedState;
+		} else {
+			this.state = {
+				page: Page.MAIN
+			};
 		}
 
 		this.updateCookie = this.updateCookie.bind(this);
@@ -79,23 +90,52 @@ class App extends Component<AppProps, AppState> {
 		});
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	updateState(update: any) {
 		this.setState(update, this.updateCookie);
 	}
 
+	renderContents() {
+		const { page, ttsmmCollection, steamCollectionID } = this.state;
+		const adjustedCollection = ttsmmCollection || { name: 'empty', mods: [] };
+		switch (page) {
+			case Page.MAIN:
+				return <></>;
+			case Page.TTSMM:
+				const ttsmmProps: TTSMMCollectionProps = {
+					ttsmmCollection: adjustedCollection,
+					updateState: this.updateState
+				};
+				return <TTSMMCollectionView {...ttsmmProps} />;
+			case Page.STEAM:
+				if (steamCollectionID) {
+					const steamProps: SteamCollectionProps = {
+						collectionID: steamCollectionID,
+						updateState: this.updateState
+					};
+					return <SteamCollectionView {...steamProps} />;
+				} else {
+					return <SteamCollectionValidationView updateState={this.updateState} />;
+				}
+		}
+		return <></>;
+	}
+
 	render() {
-		const { collection } = this.state;
-		const adjustedCollection = collection || { name: 'empty', mods: [] };
-		const ttsmmProps: TTSMMCollectionProps = {
-			collection: adjustedCollection,
-			updateState: this.updateState
-		};
+		const { page, sidebarCollapsed } = this.state;
 		return (
 			<Layout style={{ minHeight: '100vh', minWidth: '100vw' }}>
-				<Content style={{ backgroundColor: '#222' }}>
-					<div className="App">{JSON.stringify(this.state, null, 2)}</div>
-					<Outlet context={{ ...ttsmmProps }} />
-				</Content>
+				<Sider
+					className="MenuBar"
+					collapsible
+					collapsed={sidebarCollapsed}
+					onCollapse={(collapsed) => {
+						this.setState({ sidebarCollapsed: collapsed });
+					}}
+				>
+					<MenuBar disableNavigation={false} currentPath={page} updateState={this.updateState} />
+				</Sider>
+				<Content style={{ backgroundColor: '#222' }}>{this.renderContents()}</Content>
 			</Layout>
 		);
 	}
