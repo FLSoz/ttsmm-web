@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Component } from 'react';
-import { Button, Input, Layout, Space } from 'antd';
+import { Button, Input, Layout } from 'antd';
 
 import { DisplayModData } from '../model/CollectionValidation';
 import { ModData } from '../model/Mod';
@@ -94,9 +94,15 @@ export default class TTSMMCollectionView extends Component<TTSMMCollectionProps,
 			}
 		};
 		return (
-			<Layout>
-				<Content>
-					<Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+			<Layout style={{ height: '100vh', padding: 20 }}>
+				<Content style={{ height: '90%' }}>
+					<div
+						style={{
+							height: '100%',
+							padding: '0px',
+							overflowY: 'scroll'
+						}}
+					>
 						<TextArea
 							allowClear
 							value={collectionStr}
@@ -120,8 +126,9 @@ export default class TTSMMCollectionView extends Component<TTSMMCollectionProps,
 								}
 							}}
 						/>
+						<div style={{ padding: 10 }} />
 						<CollectionTable {...tableProps} loading={fetchingDetails} modErrors={modErrors} />
-					</Space>
+					</div>
 				</Content>
 				<Footer>
 					<Button

@@ -12,11 +12,11 @@ export const WORKSHOP_MOD_TYPE = 'workshop';
 export interface ModData extends PublishedFileDetails {
 	uid: string;
 	id?: string;
-	authors?: string;
+	authors?: string[];
 }
 
 export function ConvertToModData(data: PublishedFileDetails): ModData {
-	const mod: ModData = { ...data, uid: `workshop:${data.publishedfileid}` };
+	const mod: ModData = { ...data, uid: `workshop:${data.publishedfileid}`, authors: [data.creator || ''] };
 	return mod;
 }
 

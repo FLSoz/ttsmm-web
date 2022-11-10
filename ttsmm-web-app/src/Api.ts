@@ -50,7 +50,11 @@ class SteamAPIWrapper {
 			});
 
 			axios
-				.post(`https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/`, params)
+				.post(`https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/`, params, {
+					headers: {
+						'Content-Type': 'multipart/form-data'
+					}
+				})
 				.then((response: AxiosResponse) => {
 					response.data.response.publishedfiledetails.forEach((data: PublishedFileDetails) => {
 						const workshopID = BigInt(data.publishedfileid);
@@ -118,10 +122,18 @@ export async function GetModData(modId: bigint): Promise<ModData> {
 export async function GetCollection(collectionFileId: bigint): Promise<ModCollection> {
 	return Promise.allSettled([
 		axios
-			.post(`https://api.steampowered.com/ISteamRemoteStorage/GetCollectionDetails/v1/`, {
-				collectioncount: 1,
-				'publishedfileids[0]': collectionFileId
-			})
+			.post(
+				`https://api.steampowered.com/ISteamRemoteStorage/GetCollectionDetails/v1/`,
+				{
+					collectioncount: 1,
+					'publishedfileids[0]': collectionFileId
+				},
+				{
+					headers: {
+						'Content-Type': 'multipart/form-data'
+					}
+				}
+			)
 			.then((response: AxiosResponse) => {
 				return response.data.response.collectiondetails[0].children as { publishedfileid: string; filetype: number; sortorder: number }[];
 			}),
@@ -148,12 +160,35 @@ export async function GetCollection(collectionFileId: bigint): Promise<ModCollec
 async function GetBatchModDetails(modIds: string[]): Promise<(ModData | string)[]> {
 	return Promise.allSettled(
 		modIds.map((modId: string) => {
-			try {
-				const workshopID = BigInt(modId);
-				return GetModData(workshopID);
-			} catch (e) {
-				console.error(e);
-				return Promise.reject(e);
+			const uidSplit = modId.split(':');
+			if (uidSplit.length <= 1) {
+				try {
+					const workshopID = BigInt(modId);
+					return GetModData(workshopID);
+				} catch (e) {
+					console.error(e);
+					return Promise.reject(e);
+				}
+			} else if (uidSplit[0].toLowerCase() == 'workshop') {
+				try {
+					const workshopID = BigInt(uidSplit[1]);
+					return GetModData(workshopID);
+				} catch (e) {
+					console.error(e);
+					return Promise.reject(e);
+				}
+			} else if (uidSplit[0].toLocaleLowerCase() == 'local') {
+				const localData: ModData = {
+					uid: modId,
+					publishedfileid: '',
+					result: EResult.OK,
+					title: uidSplit[1]
+				};
+				return localData;
+			} else {
+				const reason = `Mod id of ${modId} is invalid`;
+				console.error(reason);
+				return Promise.reject(reason);
 			}
 		})
 	).then((results: PromiseSettledResult<ModData>[]) => {
@@ -213,13 +248,22 @@ export function LaunchWithMods(mods: string[], additionalArgs: string[] = [], pu
 		additionalArgs = [];
 	}
 
+	const sanitizedMods = mods.map((modID) => {
+		if (modID.split(':').length > 1) {
+			return modID.replaceAll(' ', '::');
+		} else {
+			return `workshop:${modID}`;
+		}
+	});
+
+	let modURL = '';
 	if (pureVanilla && mods.filter((mod) => ![HARMONY_ID, MODMANAGER_ID].includes(mod)).length === 0) {
-		window.open(`steam://rungameid/${TT_ID}//+custom_mod_list []`);
+		modURL = `steam://rungameid/${TT_ID}//+custom_mod_list []`;
 	} else {
-		window.open(
-			`steam://rungameid/${TT_ID}//+custom_mod_list [workshop:${MODMANAGER_ID}] +ttsmm_mod_list [${mods
-				.map((mod) => `workshop:${mod}`)
-				.join(',')}] ${additionalArgs.join(' ')}`
-		);
+		modURL = `steam://rungameid/${TT_ID}//+custom_mod_list [workshop:${MODMANAGER_ID}] +ttsmm_mod_list [${sanitizedMods.join(
+			','
+		)}] ${additionalArgs.join(' ')}`;
 	}
+	console.log(modURL);
+	window.open(modURL);
 }

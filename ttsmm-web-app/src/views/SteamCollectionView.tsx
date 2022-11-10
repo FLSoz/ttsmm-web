@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Component } from 'react';
-import { Button, Input, Layout, Space } from 'antd';
+import { Button, Input, Layout } from 'antd';
 
 import { ModData } from '../model/Mod';
 import { DisplayModData } from '../model/CollectionValidation';
@@ -100,9 +100,15 @@ export default class SteamCollectionView extends Component<SteamCollectionProps,
 			}
 		};
 		return (
-			<Layout>
-				<Content>
-					<Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+			<Layout style={{ height: '100vh', padding: 20 }}>
+				<Content style={{ height: '90%' }}>
+					<div
+						style={{
+							height: '100%',
+							padding: '0px',
+							overflowY: 'scroll'
+						}}
+					>
 						<Input
 							allowClear
 							value={collectionID}
@@ -123,8 +129,9 @@ export default class SteamCollectionView extends Component<SteamCollectionProps,
 								}
 							}}
 						/>
+						<div style={{ padding: 10 }} />
 						<CollectionTable {...tableProps} loading={fetchingDetails} modErrors={modErrors} />
-					</Space>
+					</div>
 				</Content>
 				<Footer>
 					<Button

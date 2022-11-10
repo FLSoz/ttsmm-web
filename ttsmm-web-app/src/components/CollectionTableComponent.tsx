@@ -211,9 +211,9 @@ const MAIN_COLUMN_SCHEMA: ColumnSchema<DisplayModData>[] = [
 			return (title: string, record: DisplayModData) => {
 				let updateType: 'danger' | 'warning' | undefined;
 				const { uid } = record;
-				let correctedName = title;
+				let correctedName = title || record.uid || JSON.stringify(record);
 				// eslint-disable-next-line react/destructuring-assignment
-				const matches = title.match(/(.*)\s*\(([^()]*[Tt][Tt][Ss][Mm][Mm][^()]*)\)$/);
+				const matches = correctedName.match(/(.*)\s*\(([^()]*[Tt][Tt][Ss][Mm][Mm][^()]*)\)$/);
 				if (matches && matches[1]) {
 					correctedName = matches[1].trim();
 				}
@@ -344,7 +344,7 @@ const MAIN_COLUMN_SCHEMA: ColumnSchema<DisplayModData>[] = [
 	},
 	{
 		title: MainColumnTitles.SIZE,
-		dataIndex: 'size',
+		dataIndex: 'file_size',
 		width: 80,
 		renderSetup: () => {
 			return (size?: number) => {
@@ -412,31 +412,21 @@ const MAIN_COLUMN_SCHEMA: ColumnSchema<DisplayModData>[] = [
 	},
 	{
 		title: MainColumnTitles.LAST_UPDATE,
-		dataIndex: 'lastUpdate',
+		dataIndex: 'time_updated',
 		width: 130,
 		renderSetup: () => {
-			return (date: Date) => {
-				return formatDateStr(date);
+			return (date: number) => {
+				return formatDateStr(new Date(date * 1000));
 			};
 		}
 	},
 	{
-		title: MainColumnTitles.LAST_WORKSHOP_UPDATE,
-		dataIndex: 'lastWorkshopUpdate',
+		title: MainColumnTitles.DATE_CREATED,
+		dataIndex: 'time_created',
 		width: 130,
 		renderSetup: () => {
-			return (date: Date) => {
-				return formatDateStr(date);
-			};
-		}
-	},
-	{
-		title: MainColumnTitles.DATE_ADDED,
-		dataIndex: 'dateAdded',
-		width: 130,
-		renderSetup: () => {
-			return (date: Date) => {
-				return formatDateStr(date);
+			return (date: number) => {
+				return formatDateStr(new Date(date * 1000));
 			};
 		}
 	},
@@ -448,11 +438,11 @@ const MAIN_COLUMN_SCHEMA: ColumnSchema<DisplayModData>[] = [
 		renderSetup: (props: CollectionViewProps) => {
 			const { config } = props;
 			const small = config?.smallRows;
-			return (tags: string[] | undefined) => {
+			return (tags: { tag: string }[] | undefined) => {
 				const iconTags: CorpType[] = [];
 				const actualTags: string[] = [];
 				const typeTags: TypeTag[] = [];
-				new Set([...(tags || [])]).forEach((tag: string) => {
+				new Set([...(tags || [])].map((wrappedTag) => wrappedTag.tag)).forEach((tag: string) => {
 					const corp = getCorpType(tag);
 					const type = getTypeTag(tag);
 					if (tag.toLowerCase() !== 'mods') {

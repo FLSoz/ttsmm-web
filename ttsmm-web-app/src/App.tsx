@@ -56,6 +56,8 @@ class App extends Component<AppProps, AppState> {
 
 		const savedState = cookies[COOKIE_NAME];
 		if (savedState) {
+			console.log('Loaded saved state');
+			console.log(savedState);
 			this.state = savedState;
 		} else {
 			this.state = {
@@ -74,6 +76,7 @@ class App extends Component<AppProps, AppState> {
 	}
 
 	showException(e: Error) {
+		console.error(e);
 		return;
 	}
 

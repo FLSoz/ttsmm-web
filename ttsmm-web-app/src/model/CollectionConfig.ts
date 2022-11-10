@@ -5,8 +5,7 @@ export enum MainColumnTitles {
 	STATE = 'State',
 	SIZE = 'Size',
 	LAST_UPDATE = 'Last Update',
-	LAST_WORKSHOP_UPDATE = 'Workshop Update',
-	DATE_ADDED = 'Date Added',
+	DATE_CREATED = 'Date Created',
 	TAGS = 'Tags'
 }
 
