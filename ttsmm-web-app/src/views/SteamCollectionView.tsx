@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Component } from 'react';
+import { Button, Input, Layout, Space } from 'antd';
 
 import { ModData } from '../model/Mod';
 import { DisplayModData } from '../model/CollectionValidation';
 import { CollectionViewProps, ModCollection } from '../model/ModCollection';
 import CollectionTable from '../components/CollectionTableComponent';
-import { GetCollection, ProcessBatchModDetails } from '../Api';
+import { GetCollection, ProcessBatchModDetails, LaunchWithMods } from '../Api';
+
+const { Footer, Content } = Layout;
 
 interface SteamCollectionState {
 	rows: DisplayModData[];
@@ -17,8 +20,9 @@ interface SteamCollectionState {
 }
 
 export interface SteamCollectionProps {
-	collectionID: string;
+	collectionID?: string;
 	updateState: (update: any) => void;
+	reportException: (e: Error) => void;
 }
 
 export default class SteamCollectionView extends Component<SteamCollectionProps, SteamCollectionState> {
@@ -33,49 +37,60 @@ export default class SteamCollectionView extends Component<SteamCollectionProps,
 		};
 	}
 
+	fetchCollectionDetails(collectionID: string) {
+		const { updateState, reportException } = this.props;
+		try {
+			updateState({ steamCollection: collectionID });
+			GetCollection(BigInt(collectionID))
+				.then((collection: ModCollection) => {
+					this.setState({ collection });
+
+					const modIDs = collection.mods;
+					const { modErrors } = this.state;
+					// eslint-disable-next-line promise/no-nesting
+					ProcessBatchModDetails(modIDs, modErrors)
+						// eslint-disable-next-line promise/no-nesting
+						.then((rows) => {
+							this.setState({
+								rows,
+								filteredRows: rows,
+								fetchingDetails: false
+							});
+							return true;
+						})
+						// eslint-disable-next-line promise/no-nesting
+						.catch((e: Error) => {
+							console.error(e);
+							this.setState({ fetchingDetails: false });
+							reportException(e as Error);
+						});
+					return;
+				})
+				.catch((e: Error) => {
+					console.error(e);
+					this.setState({ fetchingDetails: false });
+					reportException(e as Error);
+				});
+		} catch (e) {
+			console.error(e);
+			this.setState({ fetchingDetails: false });
+			reportException(e as Error);
+		}
+	}
+
 	// fetch collection/mod details on load
 	componentDidMount(): void {
-		const { collectionID, updateState } = this.props;
+		const { collectionID } = this.props;
 		if (collectionID) {
-			try {
-				updateState({ steamCollection: collectionID });
-				GetCollection(BigInt(collectionID))
-					.then((collection: ModCollection) => {
-						this.setState({ collection });
-
-						const modIDs = collection.mods;
-						const { modErrors } = this.state;
-						// eslint-disable-next-line promise/no-nesting
-						ProcessBatchModDetails(modIDs, modErrors)
-							.then((rows) => {
-								this.setState({
-									rows,
-									filteredRows: rows,
-									fetchingDetails: false
-								});
-								return true;
-							})
-							.catch((e: Error) => {
-								console.error(e);
-								this.setState({ error: e.toString(), fetchingDetails: false });
-							});
-						return;
-					})
-					.catch((e: Error) => {
-						console.error(e);
-						this.setState({ error: e.toString(), fetchingDetails: false });
-					});
-			} catch (e) {
-				console.error(e);
-				this.setState({ error: (e as Error).toString(), fetchingDetails: false });
-			}
+			this.fetchCollectionDetails(collectionID);
 		} else {
 			this.setState({ fetchingDetails: false });
 		}
 	}
 
 	render() {
-		const { rows, filteredRows } = this.state;
+		const { rows, filteredRows, fetchingDetails, modErrors, collection } = this.state;
+		const { reportException, collectionID, updateState } = this.props;
 		const tableProps: CollectionViewProps = {
 			rows,
 			filteredRows,
@@ -84,6 +99,45 @@ export default class SteamCollectionView extends Component<SteamCollectionProps,
 				return;
 			}
 		};
-		return <CollectionTable {...tableProps} />;
+		return (
+			<Layout>
+				<Content>
+					<Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+						<Input
+							allowClear
+							value={collectionID}
+							onChange={(event) => {
+								const newStr = event.target.value;
+								try {
+									const fileRegex = new RegExp('/\\?id=([0-9]+)');
+									const matches = newStr.match(fileRegex);
+									if (matches) {
+										// eslint-disable-next-line prefer-destructuring
+										const newCollectionID = matches[1];
+										this.fetchCollectionDetails(newCollectionID);
+										updateState({ steamCollectionID: newCollectionID });
+									}
+								} catch (e) {
+									console.error(e);
+									reportException(e as Error);
+								}
+							}}
+						/>
+						<CollectionTable {...tableProps} loading={fetchingDetails} modErrors={modErrors} />
+					</Space>
+				</Content>
+				<Footer>
+					<Button
+						type="primary"
+						disabled={!collection}
+						onClick={() => {
+							LaunchWithMods(collection!.mods);
+						}}
+					>
+						Launch Game
+					</Button>
+				</Footer>
+			</Layout>
+		);
 	}
 }

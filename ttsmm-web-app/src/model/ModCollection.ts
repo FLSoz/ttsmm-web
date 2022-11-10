@@ -18,11 +18,13 @@ export function ConvertToCollection(data: PublishedFileDetails): ModCollection {
 }
 
 export interface CollectionViewProps {
+	loading?: boolean;
 	config?: CollectionConfig;
 	rows: ModData[];
 	filteredRows: ModData[];
 	madeEdits?: boolean;
 	lastValidationStatus?: boolean;
+	modErrors?: Map<string, string>;
 	getModDetails: (mod: string, modData: ModData, bigData?: boolean) => void;
 }
 

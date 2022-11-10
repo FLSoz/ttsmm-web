@@ -7,7 +7,6 @@ import { TTSMMCollection } from './model/ModCollection';
 import { Page } from './model/Menu';
 import TTSMMCollectionView, { TTSMMCollectionProps } from './views/TTSMMCollectionView';
 import SteamCollectionView, { SteamCollectionProps } from './views/SteamCollectionView';
-import SteamCollectionValidationView from './views/SteamCollectionValidationView';
 import MenuBar from './components/MenuBar';
 
 const { Content, Sider } = Layout;
@@ -66,11 +65,16 @@ class App extends Component<AppProps, AppState> {
 
 		this.updateCookie = this.updateCookie.bind(this);
 		this.updateState = this.updateState.bind(this);
+		this.showException = this.showException.bind(this);
 	}
 
 	// refresh cookie expiration on loading page
 	componentDidMount() {
 		this.updateCookie();
+	}
+
+	showException(e: Error) {
+		return;
 	}
 
 	updateCookie() {
@@ -104,19 +108,21 @@ class App extends Component<AppProps, AppState> {
 			case Page.TTSMM:
 				const ttsmmProps: TTSMMCollectionProps = {
 					ttsmmCollection: adjustedCollection,
-					updateState: this.updateState
+					updateState: this.updateState,
+					reportException: this.showException
 				};
 				return <TTSMMCollectionView {...ttsmmProps} />;
 			case Page.STEAM:
-				if (steamCollectionID) {
-					const steamProps: SteamCollectionProps = {
-						collectionID: steamCollectionID,
-						updateState: this.updateState
-					};
-					return <SteamCollectionView {...steamProps} />;
-				} else {
-					return <SteamCollectionValidationView updateState={this.updateState} />;
-				}
+				const steamProps: SteamCollectionProps = {
+					collectionID: steamCollectionID,
+					updateState: this.updateState,
+					reportException: this.showException
+				};
+				return <SteamCollectionView {...steamProps} />;
+			case Page.FAQ:
+				return <></>;
+			case Page.SETTINGS:
+				return <></>;
 		}
 		return <></>;
 	}
@@ -130,7 +136,7 @@ class App extends Component<AppProps, AppState> {
 					collapsible
 					collapsed={sidebarCollapsed}
 					onCollapse={(collapsed) => {
-						this.setState({ sidebarCollapsed: collapsed });
+						this.setState({ sidebarCollapsed: collapsed }, this.updateCookie);
 					}}
 				>
 					<MenuBar disableNavigation={false} currentPath={page} updateState={this.updateState} />

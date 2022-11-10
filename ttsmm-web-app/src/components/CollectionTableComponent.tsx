@@ -510,11 +510,12 @@ export default class CollectionTable extends Component<CollectionViewProps, Coll
 	}
 
 	render() {
-		const { config, filteredRows } = this.props;
+		const { config, filteredRows, loading } = this.props;
 		const small = config?.smallRows;
 		return (
 			// eslint-disable-next-line react/destructuring-assignment
 			<Table
+				loading={loading}
 				dataSource={filteredRows}
 				pagination={false}
 				size="small"
